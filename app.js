@@ -1,3 +1,8 @@
+const LEGACY_ROUTES={"oll-front-line":"oll.html","oll-front-l":"oll.html","oll-front-dot":"oll.html","oll-back-sune":"oll.html","oll-back-antisune":"oll.html","oll-back-h":"oll.html","oll-back-l":"oll.html","oll-back-t":"oll.html","oll-back-pi":"oll.html","oll-back-u":"oll.html","pll-front-t":"pll.html","pll-front-y":"pll.html","pll-back-ua":"pll.html","pll-back-ub":"pll.html","pll-back-h":"pll.html","pll-back-z":"pll.html"};
+// Old bookmarks such as index.html#oll-back-h keep opening the same case.
+const legacyPage=LEGACY_ROUTES[location.hash.slice(1)];
+if(document.body.dataset.page==='home' && legacyPage) location.replace(legacyPage+location.hash);
+
 const statusNode=document.querySelector('#offline-status');
 const installButton=document.querySelector('#install-app');
 let installPrompt;
@@ -15,6 +20,11 @@ installButton.addEventListener('click',async()=>{
 window.addEventListener('appinstalled',()=>{installButton.hidden=true;});
 
 if('serviceWorker' in navigator && location.protocol!=='file:') {
+  const hadController=Boolean(navigator.serviceWorker.controller);
+  let reloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(hadController&&!reloading) {reloading=true;location.reload();}
+  });
   statusNode.textContent='オフライン用に保存中…';
   navigator.serviceWorker.register('./sw.js').then(registration=>{
     const track=worker=>{
